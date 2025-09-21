@@ -1,0 +1,9 @@
+{
+"C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
+"files.associations": {
+    "gtk.h": "c",
+    "stdlib.h": "c",
+    "drivers-manager.h": "c",
+    "string.h": "c"
+}
+}
