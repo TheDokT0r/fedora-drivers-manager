@@ -15,8 +15,8 @@ static void on_activate (GtkApplication *app) {
 
   char *txt = "none";
   enum GPU gpu = detect_gpu();
-  if(gpu == RTX) {
-    txt = "RTX";
+  if(gpu == NVIDIA_LATEST) {
+    install_drivers(NVIDIA_LATEST);
   }
 
   gtk_window_set_child(GTK_WINDOW(window), gtk_label_new(txt));
