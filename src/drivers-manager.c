@@ -5,9 +5,50 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <ctype.h>
+#include "private/assist.h"
+#include <stdbool.h>
+
+NVIDIA_GPU_SERIES new_series(enum GPU series_id, char *keywords)
+{
+    NVIDIA_GPU_SERIES series;
+    series.keywords = keywords;
+    series.series_id = series_id;
+
+    return series;
+}
+
+static bool is_currect_nvidia_series(char *response, NVIDIA_GPU_SERIES checked_series)
+{
+    char **tokens;
+    tokens = str_split(checked_series.keywords, ",");
+    if (tokens)
+    {
+        int i;
+        for (i = 0; *(tokens + i); i++)
+        {
+            if (strstr(response, *(tokens + i)))
+            {
+                return true;
+
+                free(*(tokens + i));
+                free(tokens);
+            }
+        }
+    }
+
+    free(tokens);
+    return false;
+}
 
 enum GPU detect_gpu()
 {
+    NVIDIA_GPU_SERIES old_series[] = {
+        new_series(NVIDIA_200_SERIES, "gt2,gt 2,g2,gtx 2"),
+        new_series(NVIDIA_300_SERIES, "gt 3"),
+        new_series(NVIDIA_400_SERIES, "gt 4,gtx 4"),
+        new_series(NVIDIA_500_SERIES, "gt 5,gtx 5"),
+        new_series(NVIDIA_600_SERIES, "gt 6,gtx 6"),
+    };
     char *response = get_stdout_from_command("/lib/drivers-manager/detect-gpu.sh");
     if (response == NULL)
     {
@@ -20,11 +61,27 @@ enum GPU detect_gpu()
         response[i] = tolower((unsigned char)response[i]);
     }
 
-    if (strstr(response, "nvidia") != NULL)
+    enum GPU currect_series = NONE;
+
+    int i = 0;
+    while (&old_series[i])
     {
-        free(response);
-        return NVIDIA_LATEST;
+        if (is_currect_nvidia_series(response, old_series[i]))
+        {
+            currect_series = old_series[i].series_id;
+        }
+
+        i++;
     }
+
+    if (currect_series = NONE && strstr(response, "nvidia") != NULL)
+    {
+        currect_series = NVIDIA_LATEST;
+    }
+
+    free(old_series);
+    free(response);
+    return currect_series;
 }
 
 char *get_stdout_from_command(const char *cmd)

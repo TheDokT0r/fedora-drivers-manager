@@ -1,33 +1,52 @@
 #include <gtk/gtk.h>
 #include "drivers-manager.h"
 
-static void on_activate (GtkApplication *app) {
-  // Create a new window
-  GtkWidget *window = gtk_application_window_new (app);
-  // Create a new button
-  GtkWidget *button = gtk_button_new_with_label ("Hello, World!");
-  GtkWidget *title = gtk_label_new("Drivers Manager");
-  // When the button is clicked, close the window passed as an argument
-  g_signal_connect_swapped (button, "clicked", G_CALLBACK (gtk_window_close), window);
-  
-  // gtk_window_set_child (GTK_WINDOW (window), button);
-  // gtk_window_set_child(GTK_WINDOW(window), title);
+static GtkWidget *create_main_area_box()
+{
+  GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+  gtk_widget_set_halign(box, GTK_ALIGN_CENTER);
+  gtk_widget_set_valign(box, GTK_ALIGN_CENTER);
 
-  char *txt = "none";
-  enum GPU gpu = detect_gpu();
-  if(gpu == NVIDIA_LATEST) {
-    install_drivers(NVIDIA_LATEST);
-  }
-
-  gtk_window_set_child(GTK_WINDOW(window), gtk_label_new(txt));
-  gtk_window_present (GTK_WINDOW (window));
-
+  return box;
 }
 
-int main (int argc, char *argv[]) {
+static GtkWidget *drivers_found_message()
+{
+  GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+
+  GtkWidget *label = gtk_label_new("Required drivers found, would you like to install them now?");
+
+  GtkWidget *button = gtk_button_new_with_label("Install now");
+  gtk_box_append(GTK_BOX(box), label);
+  gtk_box_append(GTK_BOX(box), button);
+
+  return box;
+}
+
+static void on_activate(GtkApplication *app)
+{
+  // Create a new window
+  GtkWidget *window = gtk_application_window_new(app);
+  gtk_window_set_default_size(GTK_WINDOW(window), 500, 200);
+
+  GtkWidget *mainAreaBox = create_main_area_box();
+  enum GPU gpu = detect_gpu();
+  g_print(gpu);
+  if (gpu != NONE)
+  {
+    GtkWidget *driversFoundBox = drivers_found_message();
+    gtk_box_append(GTK_BOX(mainAreaBox), driversFoundBox);
+  }
+
+  gtk_window_set_child(GTK_WINDOW(window), mainAreaBox);
+  gtk_window_present(GTK_WINDOW(window));
+}
+
+int main(int argc, char *argv[])
+{
   // Create a new application
-  GtkApplication *app = gtk_application_new ("com.example.GtkApplication",
-                                             G_APPLICATION_FLAGS_NONE);
-  g_signal_connect (app, "activate", G_CALLBACK (on_activate), NULL);
-  return g_application_run (G_APPLICATION (app), argc, argv);
+  GtkApplication *app = gtk_application_new("com.example.GtkApplication",
+                                            G_APPLICATION_FLAGS_NONE);
+  g_signal_connect(app, "activate", G_CALLBACK(on_activate), NULL);
+  return g_application_run(G_APPLICATION(app), argc, argv);
 }
