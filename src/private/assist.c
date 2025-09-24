@@ -3,51 +3,108 @@
 #include <string.h>
 #include <assert.h>
 #include "assist.h";
+#include <unistd.h>
+#include <sys/wait.h>
+#include <ctype.h>
+#include <stdbool.h>
 
-char** str_split(char* a_str, const char a_delim)
+char **str_split(const char *input, char delim)
 {
-    char** result    = 0;
-    size_t count     = 0;
-    char* tmp        = a_str;
-    char* last_comma = 0;
-    char delim[2];
-    delim[0] = a_delim;
-    delim[1] = 0;
+    char *str = strdup(input); // Make a modifiable copy
+    if (!str)
+        return NULL;
 
-    /* Count how many elements will be extracted. */
+    char **result = NULL;
+    size_t count = 0;
+    char *tmp = str;
+    char *token;
+
+    // Count number of tokens
     while (*tmp)
     {
-        if (a_delim == *tmp)
-        {
+        if (*tmp == delim)
             count++;
-            last_comma = tmp;
-        }
         tmp++;
     }
-
-    /* Add space for trailing token. */
-    count += last_comma < (a_str + strlen(a_str) - 1);
-
-    /* Add space for terminating null string so caller
-       knows where the list of returned strings ends. */
-    count++;
-
-    result = malloc(sizeof(char*) * count);
-
-    if (result)
+    count++;                                       // Last token
+    result = malloc(sizeof(char *) * (count + 1)); // +1 for NULL terminator
+    if (!result)
     {
-        size_t idx  = 0;
-        char* token = strtok(a_str, delim);
-
-        while (token)
-        {
-            assert(idx < count);
-            *(result + idx++) = strdup(token);
-            token = strtok(0, delim);
-        }
-        assert(idx == count - 1);
-        *(result + idx) = 0;
+        free(str);
+        return NULL;
     }
 
+    size_t idx = 0;
+    token = strtok(str, &delim);
+    while (token != NULL)
+    {
+        result[idx++] = strdup(token); // strdup each token
+        token = strtok(NULL, &delim);
+    }
+    result[idx] = NULL;
+
+    free(str);
     return result;
+}
+
+// Trims a string from whitespaces
+void trim(char *s)
+{
+    // Pointer to the beginning of the trimmed string
+    char *ptr = s;
+
+    // Skip leading spaces
+    while (*s == ' ')
+        s++;
+
+    // Shift remaining characters to the beginning
+    while (*ptr++ = *s++)
+        ;
+}
+
+char *get_stdout_from_command(const char *cmd)
+{
+    FILE *fp;
+    char buffer[128];
+
+    size_t output_size = 128; // Initial size
+    size_t output_len = 0;    // How much data is in output
+
+    char *output = malloc(output_size);
+    if (!output)
+        return NULL;
+
+    output[0] = '\0'; // Null-terminate
+
+    fp = popen(cmd, "r");
+    if (fp == NULL)
+    {
+        perror("popen failed");
+        free(output);
+        return NULL;
+    }
+
+    while (fgets(buffer, sizeof(buffer), fp) != NULL)
+    {
+        size_t len = strlen(buffer);
+        if (output_len + len + 1 > output_size)
+        {
+            size_t new_size = output_len + len + 1;
+            char *new_output = realloc(output, new_size);
+            if (!new_output)
+            {
+                free(output);
+                pclose(fp);
+                return NULL;
+            }
+            output = new_output;
+            output_size = new_size;
+        }
+
+        strcpy(output + output_len, buffer);
+        output_len += len;
+    }
+
+    pclose(fp);
+    return output;
 }

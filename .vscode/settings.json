@@ -8,6 +8,9 @@
     "unistd.h": "c",
     "ctype.h": "c",
     "wait.h": "c",
-    "assist.h": "c"
+    "assist.h": "c",
+    "assert.h": "c",
+    "stdio.h": "c",
+    "stdbool.h": "c"
 }
 }

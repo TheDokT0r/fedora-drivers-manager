@@ -1,6 +1,9 @@
 #ifndef ASSIST
 #define ASSIST
 
-char** str_split(char* a_str, const char a_delim);
+char **str_split(const char *input, char delim);
+void trim(char *s);
+
+char *get_stdout_from_command(const char *cmd);
 
 #endif

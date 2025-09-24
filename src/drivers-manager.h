@@ -1,14 +1,8 @@
 #ifndef DM
 #define DM
 
-typedef struct NVIDIA_GPU_SERIES
+enum GPU
 {
-    enum GPU series_id;
-    char *keywords;
-} NVIDIA_GPU_SERIES;
-
-
-enum GPU {
     NVIDIA_LATEST,
     NVIDIA_9_SERIES,
     NVIDIA_200_SERIES,
@@ -20,10 +14,16 @@ enum GPU {
     NONE
 };
 
+typedef struct NVIDIA_GPU_SERIES
+{
+    enum GPU series_id;
+    char *keywords;
+} NVIDIA_GPU_SERIES;
+
 enum GPU detect_gpu();
 
-char *get_stdout_from_command(const char *cmd);
-
 int install_drivers(enum GPU required_drivers);
+
+char *get_drivers_name(enum GPU gpu);
 
 #endif
