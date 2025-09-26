@@ -102,11 +102,12 @@ enum GPU detect_gpu()
 
 int install_drivers(enum GPU required_drivers)
 {
+    get_stdout_from_command("pkexec dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm -y");
     int ret;
 
     if (required_drivers == NVIDIA_LATEST)
     {
-        ret = system("sudo dnf install -y akmod-nvidia");
+        ret = system("pkexec dnf install -y akmod-nvidia");
 
         if (ret == -1)
         {

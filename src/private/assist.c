@@ -108,3 +108,44 @@ char *get_stdout_from_command(const char *cmd)
     pclose(fp);
     return output;
 }
+
+void detect_current_os() {
+    #ifndef __linux__
+        fprintf(stderr, "This application can only run on Linux.\n");
+        exit(EXIT_FAILURE);
+    #endif
+}
+
+bool file_exists(const char *path) {
+    return access(path, F_OK) == 0;
+}
+
+bool is_fedora() {
+    FILE *fp = fopen("/etc/os-release", "r");
+    if (!fp) return false;
+
+    char line[256];
+    while (fgets(line, sizeof(line), fp)) {
+        if (strncmp(line, "ID=fedora", 9) == 0) {
+            fclose(fp);
+            return true;
+        }
+    }
+
+    fclose(fp);
+    return false;
+}
+
+bool is_atomic_fedora() {
+    return file_exists("/run/ostree-booted");
+}
+
+enum OPTIONAL_OS is_running_fedora_or_atomic() {
+    if(is_atomic_fedora()) {
+        return ATOMIC;
+    } else if(is_fedora()) {
+        return FEDORA;
+    }
+
+    return NOT_FEDORA;
+}
